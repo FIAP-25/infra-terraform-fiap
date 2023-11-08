@@ -115,6 +115,12 @@ resource "aws_ecs_service" "my_service" {
     assign_public_ip = true
   }
 
+  load_balancer {
+    target_group_arn = aws_lb_target_group.my_load_balancer_target_group.arn
+    container_name   = "container-nest-fiap"
+    container_port   = 3000 # Match with the container port
+  }
+
   depends_on = [aws_ecs_task_definition.my_task, aws_db_instance.default]
 }
 
@@ -142,4 +148,44 @@ resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {
   role       = aws_iam_role.ecsTaskExecutionRole.name
   count      = length(var.iam_policy_arn)
   policy_arn = var.iam_policy_arn[count.index]
+}
+
+
+################################################################################
+# Load Balancer
+################################################################################
+resource "aws_lb" "my_load_balancer" {
+  name               = "ecs-alb-nest-fiap"
+  internal           = false
+  load_balancer_type = "application"
+  subnets            = aws_subnet.public_subnet.*.id
+}
+
+resource "aws_lb_target_group" "my_load_balancer_target_group" {
+  name        = "ecs-target-group-nest-fiap"
+  port        = 3000 # Match with the container port
+  protocol    = "HTTP"
+  target_type = "ip"         # Set the target type to "ip" for Fargate
+  vpc_id      = local.vpc_id # Add your VPC ID here
+
+  health_check {
+    path                = "/"
+    port                = "traffic-port"
+    protocol            = "HTTP"
+    timeout             = 5
+    interval            = 30
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+  }
+}
+
+resource "aws_lb_listener" "my_load_balancer_listener" {
+  load_balancer_arn = aws_lb.my_load_balancer.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.my_load_balancer_target_group.arn
+  }
 }
