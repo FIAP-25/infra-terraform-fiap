@@ -14,7 +14,7 @@ resource "aws_db_subnet_group" "rds" {
 resource "aws_security_group" "rds" {
   name        = "fiap-sg-rds"
   description = "Security Group for RDS"
-  vpc_id      = local.vcp_id
+  vpc_id      = local.vpc_id
 
   ingress = [{
     cidr_blocks      = ["${chomp(data.http.myip.response_body)}/32"]
@@ -23,7 +23,7 @@ resource "aws_security_group" "rds" {
     ipv6_cidr_blocks = []
     prefix_list_ids  = []
     protocol         = "tcp"
-    security_groups  = []
+    security_groups  = [aws_security_group.ecs.id]
     self             = false
     to_port          = 3306
     }, {
@@ -33,7 +33,7 @@ resource "aws_security_group" "rds" {
     ipv6_cidr_blocks = []
     prefix_list_ids  = []
     protocol         = "-1"
-    security_groups  = []
+    security_groups  = [aws_security_group.ecs.id]
     self             = true
     to_port          = 0
   }]

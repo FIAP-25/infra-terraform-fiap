@@ -3,7 +3,7 @@ locals {
   create_public_subnets  = var.create_vpc
   create_private_subnets = var.create_vpc
   create_igw             = var.create_vpc
-  vcp_id                 = try(aws_vpc.vpc[0].id, "")
+  vpc_id                 = try(aws_vpc.vpc[0].id, "")
 }
 
 
@@ -26,7 +26,7 @@ resource "aws_vpc" "vpc" {
 ################################################################################
 resource "aws_subnet" "private_subnet" {
   count                   = local.create_private_subnets ? length(var.private_subnets_cidr) : 0
-  vpc_id                  = local.vcp_id
+  vpc_id                  = local.vpc_id
   cidr_block              = element(var.private_subnets_cidr, count.index)
   availability_zone       = element(var.availability_zones, count.index)
   map_public_ip_on_launch = false
@@ -34,7 +34,7 @@ resource "aws_subnet" "private_subnet" {
 
 resource "aws_subnet" "public_subnet" {
   count                   = local.create_public_subnets ? length(var.public_subnets_cidr) : 0
-  vpc_id                  = local.vcp_id
+  vpc_id                  = local.vpc_id
   cidr_block              = element(var.public_subnets_cidr, count.index)
   availability_zone       = element(var.availability_zones, count.index)
   map_public_ip_on_launch = true
@@ -45,7 +45,7 @@ resource "aws_subnet" "public_subnet" {
 ################################################################################
 resource "aws_internet_gateway" "igw" {
   count  = local.create_public_subnets ? 1 : 0
-  vpc_id = local.vcp_id
+  vpc_id = local.vpc_id
 }
 
 ################################################################################
@@ -53,7 +53,7 @@ resource "aws_internet_gateway" "igw" {
 ################################################################################
 resource "aws_route_table" "private" {
   count  = local.create_private_subnets ? 1 : 0
-  vpc_id = local.vcp_id
+  vpc_id = local.vpc_id
 }
 
 resource "aws_route_table_association" "private" {
@@ -64,7 +64,7 @@ resource "aws_route_table_association" "private" {
 
 resource "aws_route_table" "public" {
   count  = local.create_public_subnets ? 1 : 0
-  vpc_id = local.vcp_id
+  vpc_id = local.vpc_id
 }
 
 resource "aws_route_table_association" "public" {
