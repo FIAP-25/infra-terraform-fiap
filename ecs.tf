@@ -58,13 +58,13 @@ resource "aws_ecs_task_definition" "my_task" {
         }
       ],
 
-      log_configuration = {
-        log_driver = "awslogs"
+      "logConfiguration" = {
+        "logDriver" = "awslogs"
         options = {
           awslogs-group         = aws_cloudwatch_log_group.aplicacao.name
           awslogs-region        = var.region
           awslogs-stream-prefix = "ecs"
-          awslogs-create-group  = true
+          awslogs-create-group  = "true"
         }
       }
     }
@@ -86,10 +86,11 @@ resource "aws_security_group" "ecs" {
   }
 
   ingress {
-    protocol    = "tcp"
-    from_port   = 3000
-    to_port     = 3000
-    cidr_blocks = ["10.0.0.0/16"]
+    protocol        = "tcp"
+    from_port       = 3000
+    to_port         = 3000
+    security_groups = [] //aws_security_group.security_group_alb.id
+    cidr_blocks     = ["${chomp(data.http.myip.response_body)}/32"]
   }
 
   egress {
