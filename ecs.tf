@@ -81,7 +81,7 @@ resource "aws_security_group" "ecs" {
     protocol        = "tcp"
     from_port       = 3000
     to_port         = 3000
-    security_groups = [] //aws_security_group.security_group_alb.id
+    security_groups = [aws_security_group.security_group_alb.id]
     cidr_blocks     = ["10.0.0.0/16"]
   }
 
@@ -89,7 +89,7 @@ resource "aws_security_group" "ecs" {
     protocol        = "tcp"
     from_port       = 3000
     to_port         = 3000
-    security_groups = [] //aws_security_group.security_group_alb.id
+    security_groups = [aws_security_group.security_group_alb.id]
     cidr_blocks     = ["${chomp(data.http.myip.response_body)}/32"]
   }
 
@@ -110,9 +110,9 @@ resource "aws_ecs_service" "my_service" {
 
   network_configuration {
 
-    subnets          = aws_subnet.public_subnet.*.id
+    subnets          = aws_subnet.private_subnet.*.id
     security_groups  = [aws_security_group.ecs.id] // Replace with your security group IDs
-    assign_public_ip = true
+    assign_public_ip = false
   }
 
   load_balancer {
@@ -151,41 +151,3 @@ resource "aws_iam_role_policy_attachment" "ecsTaskExecutionRole_policy" {
 }
 
 
-################################################################################
-# Load Balancer
-################################################################################
-resource "aws_lb" "my_load_balancer" {
-  name               = "ecs-alb-nest-fiap"
-  internal           = false
-  load_balancer_type = "application"
-  subnets            = aws_subnet.public_subnet.*.id
-}
-
-resource "aws_lb_target_group" "my_load_balancer_target_group" {
-  name        = "ecs-target-group-nest-fiap"
-  port        = 3000 # Match with the container port
-  protocol    = "HTTP"
-  target_type = "ip"         # Set the target type to "ip" for Fargate
-  vpc_id      = local.vpc_id # Add your VPC ID here
-
-  health_check {
-    path                = "/"
-    port                = "traffic-port"
-    protocol            = "HTTP"
-    timeout             = 5
-    interval            = 30
-    healthy_threshold   = 2
-    unhealthy_threshold = 2
-  }
-}
-
-resource "aws_lb_listener" "my_load_balancer_listener" {
-  load_balancer_arn = aws_lb.my_load_balancer.arn
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.my_load_balancer_target_group.arn
-  }
-}

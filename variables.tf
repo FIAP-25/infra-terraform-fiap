@@ -100,7 +100,7 @@ variable "skip_final_snapshot" {
 
 variable "publicly_accessible" {
   description = "Publicly accessible"
-  default     = true
+  default     = false
   type        = bool
 }
 
