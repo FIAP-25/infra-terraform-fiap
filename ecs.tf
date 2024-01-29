@@ -14,7 +14,7 @@ resource "aws_ecs_task_definition" "my_task" {
   container_definitions = jsonencode([
     {
       name      = "container-nest-fiap"
-      image     = "${local.account_id}.dkr.ecr.us-east-1.amazonaws.com/${var.container_image}" // Replace with your ECR repository URI
+      image     = "${local.account_id}.dkr.ecr.us-east-1.amazonaws.com/${var.container_image_pedido}" // Replace with your ECR repository URI
       essential = true
       portMappings = [{
         name          = "container-nest-fiap-3000-tcp"
