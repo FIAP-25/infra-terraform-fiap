@@ -114,9 +114,17 @@ variable "identifier" {
 # ECS
 ################################################################################
 
-variable "container_image" {
+variable "container_image_producao" {
   type    = string
-  default = "apl-nest-fiap:latest"
+  default = "apl-producao-back:latest"
+}
+variable "container_image_pedido" {
+  type    = string
+  default = "apl-pedido-back:latest"
+}
+variable "container_image_pagamento" {
+  type    = string
+  default = "apl-pagamento-back:latest"
 }
 
 ################################################################################
